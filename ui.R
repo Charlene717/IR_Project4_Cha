@@ -30,6 +30,11 @@ library(Rtsne)
 
 library(enc)
 
+#####  Function setting ##### 
+source("FUN_XML_to_df.R") # Load file
+source("FUN_tSNE.R") # Load file
+source("FUN_BarPlot.R") # Load file
+
 # Sys.setlocale(category = "LC_ALL", locale = "UTF-8")
 ##### UI ########
 ui =   fluidPage( 

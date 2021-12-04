@@ -5,11 +5,7 @@ load("word2vec_5year2.RData")
 
 ##### Server #####
 server = function(input, output, session){
-  
-#####  Function setting ##### 
-  source("FUN_XML_to_df.R") # Load file
-  source("FUN_tSNE.R") # Load file
-  source("FUN_BarPlot.R") # Load file
+
   
 ##### Main reactive #####
   df_reactive_XML = reactive({
