@@ -48,10 +48,12 @@ XML.df <- Output_Sum[["XML.df"]]
 XML.df.Abs <- data.frame(PMID = XML.df$PMID ,Abstract = XML.df$Abstract)
 XML.df.Abs1 <- XML.df.Abs[1,]
 
-#Test <- SplitPara2Sent(XML.df.Abs[2,2])
-Test <- SplitPara2Sent(XML.df.Abs1[,2])
-
-SumTest1 <- data.frame(PMID= XML.df.Abs1[,1], Line = seq(1,nrow(Test),by=1), Sent=Test)
+SumTest1 <- data.frame(matrix(nrow = 0,ncol = 3))
+for (i in c(1:nrow(XML.df.Abs))) {
+  Test <- SplitPara2Sent(XML.df.Abs[i,2])
+  SumTest1 <- rbind(SumTest1,data.frame(PMID= XML.df.Abs[i,1], Line = seq(1,nrow(Test),by=1), Sent=Test))
+  
+}
 
 ##### Sentence to Word #####
 SumTest2 <- SplitSent2Word(SumTest1[1,3])
