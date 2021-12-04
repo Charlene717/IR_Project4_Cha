@@ -1,4 +1,4 @@
-##### Separate the sentence #####
+##### Separate the Paragraph to Sentence #####
 SplitPara2Sent = function(XML.df.Abs1){
   
       # https://stackoverflow.com/questions/35304900/split-paragraph-into-sentences-in-r
@@ -18,19 +18,43 @@ SplitPara2Sent = function(XML.df.Abs1){
 return(Output_Sent)
 }
 
+##### Separate the Sentence to Word #####
+SplitSent2Word = function(XML.df.Abs1){
+  ## https://cloud.tencent.com/developer/ask/44882
+  #XML.df.Abs1 <- str_replace_all(XML.df.Abs1, "[[:punct:]]", " " ) 
+  # https://www.codenong.com/21533899/
+  XML.df.Abs1 <- gsub("[[:punct:]]","", XML.df.Abs1, ignore.case ="-" )
+  tmp <- strsplit(as.character(XML.df.Abs1), " ", perl = TRUE) 
+  # tmp <- substr(XML.df.Abs1, " ")
+  
+  Output_Sent = tmp[[1]] %>% as.data.frame() #%>% as.character() %>% enc2utf8()
+  
+  # Remove <U+00A0>
+  # https://stackoverflow.com/questions/41108617/remove-u00a0-from-values-in-columns-in-r
+  Output_Sent <- as.data.frame(lapply(Output_Sent , function(x) {
+    gsub("\u00A0", "", x) 
+  }))
+  colnames(Output_Sent) = "Word"
+  
+  return(Output_Sent)
+}
 
 ## For Test
+##### Paragraph to Sentence #####
 xmlTestPath = "D:/Dropbox/##_GitHub/0-R/IR_Project4_Cha/Database_TestXML/test1.xml"
 Output_Sum <- XML_to_df(xmlTestPath)
 XML.df <- Output_Sum[["XML.df"]]
 
-XML.df.Abs <- data.frame(Abstract = XML.df$Abstract)
+XML.df.Abs <- data.frame(PMID = XML.df$PMID ,Abstract = XML.df$Abstract)
 XML.df.Abs1 <- XML.df.Abs[1,]
 
-Test <- SplitPara2Sent(XML.df.Abs[2,])
+#Test <- SplitPara2Sent(XML.df.Abs[2,2])
+Test <- SplitPara2Sent(XML.df.Abs1[,2])
 
+SumTest1 <- data.frame(PMID= XML.df.Abs1[,1], Line = seq(1,nrow(Test),by=1), Sent=Test)
 
+##### Sentence to Word #####
+SumTest2 <- SplitSent2Word(SumTest1[1,3])
 
-
-
-
+SumTest2_2 <- as.data.frame(table(SumTest2))
+SumTest2_3 <- data.frame(PMID= SumTest1[1,1], Line = SumTest1[1,2], Word=SumTest2_2)
