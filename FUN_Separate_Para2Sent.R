@@ -56,7 +56,11 @@ for (i in c(1:nrow(XML.df.Abs))) {
 }
 
 ##### Sentence to Word #####
-SumTest2 <- SplitSent2Word(SumTest1[1,3])
-
-SumTest2_2 <- as.data.frame(table(SumTest2))
-SumTest2_3 <- data.frame(PMID= SumTest1[1,1], Line = SumTest1[1,2], Word=SumTest2_2)
+SumTest2_3 <- data.frame(matrix(nrow = 0,ncol = 4))
+for (j in c(1:nrow(SumTest1))) {
+  SumTest2 <- SplitSent2Word(SumTest1[j,3])
+  
+  SumTest2_2 <- as.data.frame(table(SumTest2))
+  SumTest2_3 <- rbind(SumTest2_3,data.frame(PMID= SumTest1[j,1], Line = SumTest1[j,2], Word=SumTest2_2))
+  
+}
