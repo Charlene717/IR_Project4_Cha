@@ -10,17 +10,8 @@ memory.limit(150000)
 
 #####  Function setting ##### 
 ## Call function
-# Put R files in the same folder
-filePath <- ""
-getFilePath <- function(fileName) {
-  path <- setwd(getwd())   # path <- setwd("~") # Absolute path of project folder
-  filePath <<- paste0(path ,"/" , fileName)    # Combine strings without gaps  
-  sourceObj <- source(filePath)  #? Assigning values to global variable
-  return(sourceObj)
-}
-
-getFilePath("FUN_XML_to_df.R") # Load file
-getFilePath("FUN_tSNE.R")
+source("FUN_XML_to_df.R") # Load file
+source("FUN_tSNE.R")
 
 library(rword2vec)
 library(magrittr)
