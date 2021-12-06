@@ -22,18 +22,23 @@ library(tidytext)
 
 library(SnowballC) # For wordStem
 
-library(dynprog) # Dynamic Programming
+# Dynamic Programming
+library(dynprog) 
 library(Biostrings) # Dynamic Programming (pairwiseAlignment)
 
+# word2vec
 library(rword2vec)
+
+# Dimensionality reduction
 library(Rtsne)
 
 library(enc)
 
 #####  Function setting ##### 
-source("FUN_XML_to_df.R") # Load file
-source("FUN_tSNE.R") # Load file
-source("FUN_BarPlot.R") # Load file
+source("FUN_XML_to_df.R") # Load function
+source("FUN_tSNE.R") # Load function
+source("FUN_BarPlot.R") # Load function
+source("FUN_Separate.R") # Load function
 
 # Sys.setlocale(category = "LC_ALL", locale = "UTF-8")
 ##### UI ########

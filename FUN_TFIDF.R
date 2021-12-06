@@ -53,6 +53,9 @@ TF_IDF = function (tbl, term, document, n , mode = "Basic")
     tbl$idf <- as.numeric(idf[terms])
     if(nrow(tbl[tbl$idf  <= 0, ])>0){
     tbl[tbl$idf <= 0, ]$idf <- 0
+    # ##
+    # tbl$idf[tbl$idf<0] <- 0
+    # ##
     }
     
   }
