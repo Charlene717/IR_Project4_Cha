@@ -1,12 +1,13 @@
-tSNEPlot = function(KY,BIN,NB,Title){
+tSNEPlot = function(data_5year_SRP_word2phrase_DR,KY,BIN,NB,Title,tSNEPerX=50){
+
   Keyword = KY
   dist_Keyword_word2phrase = distance(file_name = BIN ,search_word = Keyword,num = 1000)
   
   data_DR_word2phrase_K <- data_5year_SRP_word2phrase_DR[rownames(data_5year_SRP_word2phrase_DR) %in% c(as.character(dist_Keyword_word2phrase$word),Keyword),]
   
   set.seed(1) # Fix the seed
-  tsne_word2phrase <- Rtsne(data_DR_word2phrase_K, perplexity = 50, pca = FALSE)
-  
+  tsne_word2phrase <- Rtsne(data_DR_word2phrase_K, perplexity = tSNEPerX, pca = FALSE)
+
   tsneP_word2phrase<- as.data.frame(tsne_word2phrase$Y)
   row.names(tsneP_word2phrase) <- row.names(data_DR_word2phrase_K)
   
