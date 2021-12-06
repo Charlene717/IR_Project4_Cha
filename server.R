@@ -1,7 +1,8 @@
 options(shiny.maxRequestSize=30*1024^2)
 ##### Preload data
 #load("D:/Ch_Bioinformatics Dropbox/Chang Charlene/##_GitHub/0-R/IR_Project3_Cha/word2vec_5year.Rdata")
-load("word2vec_5year2.RData")
+
+load("word2vec_5year2_TFIDF_Monocle.RData")
 
 ##### Server #####
 server = function(input, output, session){
@@ -14,8 +15,16 @@ server = function(input, output, session){
     XML.df <- Output_Sum[["XML.df"]]
   })
   
-  
   Keyword_reactive_Ori_XML = reactive({
+    Keyword = tolower(input$word_select)
+  })
+  
+  Keyword_reactive_Stem_XML = reactive({
+    Keyword = tolower(input$word_select)
+  })
+  
+  
+  Keyword_reactive_DR_XML = eventReactive(c(input$RunDP),{
     Output_Sum <- XML_to_df(input$file1$datapath)
     Abs.All_df.Word.C <- Output_Sum[["Abs.All_df.Word.C"]]
     ##
@@ -47,7 +56,7 @@ server = function(input, output, session){
   })
 
 
-  Keyword_reactive_Stem_XML = reactive({
+  Keyword_reactive_DR_Stem_XML = eventReactive(c(input$RunDP),{
     Output_Sum <- XML_to_df(input$file1$datapath)
     Abs.All_df.Word.Stem.C <- Output_Sum[["Abs.All_df.Word.Stem.C"]]
     ##
@@ -68,33 +77,24 @@ server = function(input, output, session){
     NewKeyword_Stem <- as.character(Abs.All_df.Word.Stem.C.Score$stem[1])
   })
 
-  
-  TryKeyWord  = eventReactive(c(input$SearchKW,input$file1$datapath,input$file2$datapath), {
+#  TryKeyWord  = eventReactive(c(input$SearchKW,input$file1$datapath), {
+  TryKeyWord  = eventReactive(c(input$SearchKW), {
     if (input$word_select==""){ButKeyword =NULL
     }else{
     ButKeyword = tolower(input$word_select)
     }
     })
   OriKeyWord  =  reactive({
-      ButKeyword = tolower(input$word_select)
+    ButKeyword = tolower(input$word_select)
   })
   
-  TryKeyWord2  = eventReactive(c(input$SearchKW2), {
-    input$word_select2
-  })
-  
-  TryKeyWord3  = eventReactive(c(input$SearchKW3), {
-    input$word_select3
-  })
-  
-  TryKeyWord4  = eventReactive(c(input$SearchKW4), {
-    input$word_select4
-  })
 
   
 ##### summary graph #####  
   output$HisFig <- renderPlot({
-    if (length(input$file1)>0 && length(input$file2)==0){
+    NewKeyword_Ori <- Keyword_reactive_Ori_XML()
+    NewKeyword_Stem <- Keyword_reactive_Stem_XML()
+    if (length(input$file1)>0){
       ## Bar plot for XML
       
       Output_Sum <- XML_to_df(input$file1$datapath)
@@ -108,8 +108,6 @@ server = function(input, output, session){
       TryKey <- TryKeyWord()
       OriKey <- OriKeyWord()
       
-      NewKeyword_Ori <- Keyword_reactive_Ori_XML()
-      NewKeyword_Stem <- Keyword_reactive_Stem_XML()
       
       p1 <- FUN_BarPlot(Abs.All_df.Word.C,Abs.All_df.Sum.max, AES = aes(x = word, y = n), GB.Color = "#f5e6e8", GGTitle = "Original")
       
@@ -183,7 +181,7 @@ server = function(input, output, session){
   
 ##### Summary table #####  
   output$SumTable <- renderTable({
-    if (length(input$file1)>0 && length(input$file2)==0){
+    if (length(input$file1)>0){
       df_reactive_XML()[,c(1:3,6:9)]
     }else{
       # XML.df0 <- data.frame(matrix(nrow = 0,ncol = 10))
@@ -202,7 +200,7 @@ server = function(input, output, session){
 ##### Searching the Keywords #####
   # Reference # https://newbedev.com/highlight-word-in-dt-in-shiny-based-on-regex
   df_reactive_HL = reactive({
-    if(length(input$file1)>0 && length(input$file2)==0){
+    if(length(input$file1)>0){
       # XML.df.Hl <- XML_to_df(input$file1$datapath,NewKeyword)
       Output_Sum <- XML_to_df(input$file1$datapath)
       XML.df.Hl <- Output_Sum[["XML.df"]]
@@ -225,11 +223,11 @@ server = function(input, output, session){
       # Summary_table2 <- Summary_table2[1:100,]
       # Summary_table2 <- as.matrix(Summary_table2)
       # Summary_table2
-      # TryKeyWord4
+      # Keyword_reactive_Ori_XML
       
       
       XML.df.Hl <- Summary_table2
-      NewKeyword <- TryKeyWord4()
+      NewKeyword <- Keyword_reactive_Ori_XML()
       XML.df.Hl[,c(2,4,5)] %>%
         # Filter if input is anywhere, even in other words.
         filter_all(any_vars(grepl(NewKeyword, ., T, T))) %>% 
@@ -250,9 +248,9 @@ server = function(input, output, session){
   ## Word2Vector df
   df_reactive_W2V_SRP = reactive({
     # ana_cachexia_5year_SRP
-    if (length(TryKeyWord2())==1){
+    if (length(Keyword_reactive_Ori_XML())==1){
       ## SG
-      dist_Gene_5year_SRP = distance(file_name = "vec_5year_SRP.bin",search_word = TryKeyWord2(),num = 1000) 
+      dist_Gene_5year_SRP = distance(file_name = "vec_5year_SRP.bin",search_word = Keyword_reactive_Ori_XML(),num = 1000) 
       dist_Gene_5year_SRP$word <- enc2utf8(as.character(dist_Gene_5year_SRP$word)) # turn to utf-8
       dist_Gene_5year_SRP <- dist_Gene_5year_SRP[Encoding(dist_Gene_5year_SRP$word)=='unknown',]# delet unknwon
       
@@ -260,7 +258,7 @@ server = function(input, output, session){
       colnames(dist_Gene_5year_SRP) <- c("Word","SG.CosDist")
       #dist_Gene_5year_SRP
       
-      dist_Gene_5year_SRP_W2P = distance(file_name = "vec_5year_SRP_word2phrase.bin",search_word = TryKeyWord2(),num = 1000) 
+      dist_Gene_5year_SRP_W2P = distance(file_name = "vec_5year_SRP_word2phrase.bin",search_word = Keyword_reactive_Ori_XML(),num = 1000) 
       dist_Gene_5year_SRP_W2P$word <- enc2utf8(as.character(dist_Gene_5year_SRP_W2P$word)) # turn to utf-8
       dist_Gene_5year_SRP_W2P <- dist_Gene_5year_SRP_W2P[Encoding(dist_Gene_5year_SRP_W2P$word)=='unknown',]# delet unknwon
       
@@ -269,7 +267,7 @@ server = function(input, output, session){
       #df_W2V_SRP <- full_join(dist_Gene_5year_SRP, dist_Gene_5year_SRP_W2P,by="Word")
       
       ## CBOW
-      dist_Gene_5year_SRP_CBOW = distance(file_name = "vec_5year_SRP_CBOW.bin",search_word = TryKeyWord2(),num = 1000) 
+      dist_Gene_5year_SRP_CBOW = distance(file_name = "vec_5year_SRP_CBOW.bin",search_word = Keyword_reactive_Ori_XML(),num = 1000) 
       dist_Gene_5year_SRP_CBOW$word <- enc2utf8(as.character(dist_Gene_5year_SRP_CBOW$word)) # turn to utf-8
       dist_Gene_5year_SRP_CBOW <- dist_Gene_5year_SRP_CBOW[Encoding(dist_Gene_5year_SRP_CBOW$word)=='unknown',]# delet unknwon
       
@@ -280,7 +278,7 @@ server = function(input, output, session){
       df_W2V_SRP <- full_join(df_W2V_SRP, dist_Gene_5year_SRP_CBOW,by="Word")
       
     }else{
-      ana_cachexia_5year_SRP = word_analogy(file_name = "vec_5year_SRP.bin",search_words = TryKeyWord2() ,num = 1000)
+      ana_cachexia_5year_SRP = word_analogy(file_name = "vec_5year_SRP.bin",search_words = Keyword_reactive_Ori_XML() ,num = 1000)
       ana_cachexia_5year_SRP$word <- enc2utf8(as.character(ana_cachexia_5year_SRP$word)) # turn to utf-8
       ana_cachexia_5year_SRP <- ana_cachexia_5year_SRP[Encoding(ana_cachexia_5year_SRP$word)=='unknown',]# delet unknwon
       
@@ -295,8 +293,9 @@ server = function(input, output, session){
     })
 
   plot_tsne_word2phrase = reactive({
-    if (nchar(TryKeyWord3())!=0){
-      Keyword =TryKeyWord3()
+    if (nchar(Keyword_reactive_Ori_XML())!=0){
+      tSNEPerX =Keyword_reactive_Ori_XML()
+      Keyword =Keyword_reactive_Ori_XML()
       
       Title_SG_W2P = "Skip-gram & word2phrase"
       KY_W2P = Keyword
@@ -335,5 +334,102 @@ server = function(input, output, session){
   output$W2V_DR <- renderPlot({
     plot_tsne_word2phrase()
   })
+  
+  
+  plot_UMAP_SentFreq = reactive({
+    grid.arrange(UMAP_Score_IF, UMAP_Score_Ori, UMAP_Score_ModeA ,UMAP_Score_ModeB , nrow = 1)
+  })
+  output$SentFreq <- renderPlot({
+    plot_UMAP_SentFreq()
+  })
+  ##### Sentence Ranking #####
+  df_reactive_XML = reactive({
+    #XML.df <- XML_to_df(input$file1$datapath,input$word_select)
+    Output_Sum <- XML_to_df(input$file1$datapath)
+    XML.df <- Output_Sum[["XML.df"]]
+  })
+  
+  ## Sent
+  BestSentence = reactive({
+    BestS <- as.character(BestText3)
+  })
+  
+  output$BestSent <- renderText({
+    BestSentence()
+    
+  })
+  
+  
+  ## df Ori
+  BestSentence_Table = reactive({
+    BestS_Tb <- BestTextinPMID_Ori
+    NewKeyword <- Keyword_reactive_Ori_XML()
+    BestS_Tb[,c(1,2,3,6)] %>%
+      # Filter if input is anywhere, even in other words.
+      filter_all(any_vars(grepl(NewKeyword, ., T, T))) %>% 
+      # Replace complete words with same in XML.
+      mutate_all(~ gsub(
+        paste(c("\\b(", NewKeyword, ")\\b"), collapse = ""),
+        "<span style='background-color:#c9f5e2;color:#29805a;font-family: Calibra, Arial Black;'>\\1</span>", # font-family: Lobster, cursive
+        ., TRUE, TRUE ))
+    
+  })
+  # output$BestSent_Table <- renderTable({
+  #   #datatable(BestSentence_Table(), escape = F, options = list(searchHighlight = TRUE,dom = "lt"))
+  #   BestSentence_Table()
+  # })
+  output$BestSent_Table <- renderDataTable({
+    datatable(BestSentence_Table(), escape = F, options = list(searchHighlight = TRUE,
+                                                               pageLength = 100,dom = "lt"))
+  })
+  
+  ## df Mode A
+  BestSentence_TableA = reactive({
+    BestS_Tb <- BestTextinPMID_ModeA
+    NewKeyword <- Keyword_reactive_Ori_XML()
+    BestS_Tb[,c(1,2,3,6)] %>%
+      # Filter if input is anywhere, even in other words.
+      filter_all(any_vars(grepl(NewKeyword, ., T, T))) %>% 
+      # Replace complete words with same in XML.
+      mutate_all(~ gsub(
+        paste(c("\\b(", NewKeyword, ")\\b"), collapse = ""),
+        "<span style='background-color:#c9f5e2;color:#29805a;font-family: Calibra, Arial Black;'>\\1</span>", # font-family: Lobster, cursive
+        ., TRUE, TRUE ))
+    
+  })
+  # output$BestSent_TableA <- renderTable({
+  #   #datatable(BestSentence_Table(), escape = F, options = list(searchHighlight = TRUE,dom = "lt"))
+  #   BestSentence_TableA()
+  # })
+  output$BestSent_TableA <- renderDataTable({
+    datatable(BestSentence_TableA(), escape = F, options = list(searchHighlight = TRUE,
+                                                                pageLength = 100,dom = "lt"))
+  })
+  
+  
+  ## df Mode B
+  BestSentence_TableB = reactive({
+    BestS_Tb <- BestTextinPMID_ModeB
+    NewKeyword <- Keyword_reactive_Ori_XML()
+    BestS_Tb[,c(1,2,3,6)] %>%
+      # Filter if input is anywhere, even in other words.
+      filter_all(any_vars(grepl(NewKeyword, ., T, T))) %>% 
+      # Replace complete words with same in XML.
+      mutate_all(~ gsub(
+        paste(c("\\b(", NewKeyword, ")\\b"), collapse = ""),
+        "<span style='background-color:#c9f5e2;color:#29805a;font-family: Calibra, Arial Black;'>\\1</span>", # font-family: Lobster, cursive
+        ., TRUE, TRUE ))
+    
+  })
+  # output$BestSent_TableB <- renderTable({
+  #   #datatable(BestSentence_Table(), escape = F, options = list(searchHighlight = TRUE,dom = "lt"))
+  #   BestSentence_TableB()
+  # })
+  output$BestSent_TableB <- renderDataTable({
+    datatable(BestSentence_TableB(), escape = F, options = list(searchHighlight = TRUE,
+                                                                pageLength = 100,dom = "lt"))
+  })
+  
+
   
 }
