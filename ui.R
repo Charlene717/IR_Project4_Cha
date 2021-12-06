@@ -1,12 +1,14 @@
+
 ##### Load library ########
 library(readr)
 library(DT)
 library(magrittr) 
-library(ggplot2)
+
+#library(NLP)
 library(pdp)
 library(shiny)
 library(XML)
-library(jsonlite)
+#library(jsonlite)
 library(tibble)
 library(tidytext)
 
@@ -18,7 +20,7 @@ library(stringr)
 
 library(hcandersenr)
 library(tidyverse)
-library(tidytext)
+
 
 library(SnowballC) # For wordStem
 
@@ -33,118 +35,73 @@ library(rword2vec)
 library(Rtsne)
 
 library(enc)
+library(ggplot2)
+library(monocle3)
+
 
 #####  Function setting ##### 
 source("FUN_XML_to_df.R") # Load function
 source("FUN_tSNE.R") # Load function
 source("FUN_BarPlot.R") # Load function
 source("FUN_Separate.R") # Load function
+source("FUN_TFIDF.R") # Load function
+source("FUN_Beautify_ggplot.R") # Load function
+
 
 # Sys.setlocale(category = "LC_ALL", locale = "UTF-8")
 ##### UI ########
 ui =   fluidPage( 
   # https://stackoverflow.com/questions/57037758/r-shiny-how-to-color-margin-of-title-panel
   titlePanel(h1("IR Project 4",
-                           style='background-color:#ece4db;  
+                style='background-color:#ece4db;  
                      color:#474973;
                      font-weight: 500;
                      font-family: Arial Black;
                      line-height: 1.2;
                      padding-left: 15px')),
   sidebarLayout( 
-                sidebarPanel(fileInput("file1", "Choose XML Files", accept = ".xml", multiple = T),
-                             textInput("word_select", label = "Word to search"),
-                             actionButton("SearchKW", "Search")), 
-                mainPanel("maaaaaaaain page") ),
-
-    ##### Summary Page #####
-      tabsetPanel(
-        tabPanel("Summary",  
-                  fluidPage(
-                    sidebarLayout(position = "right",
-                        sidebarPanel(
-                          textInput("word_select", label = "word to search","Cachexia"),
-                          actionButton("SearchKW", "Search")
-                            ),
-                        
-                    mainPanel(
-                              plotOutput("HisFig"),
-                              tableOutput("SumTable"))
-                              )
-        
-                  )),
+    sidebarPanel(fileInput("file1", "Choose XML Files", accept = ".xml", multiple = T),
+                 textInput("word_select", label = "Word to search","Cachexia"),
+                 actionButton("SearchKW", "Search"),
+                 actionButton("RunDP", "DP")), 
+    mainPanel(textOutput(outputId="BestSent")) ),
+  
+  ##### Summary Page #####
+  tabsetPanel(
+    tabPanel("Summary",  
+             fluidPage(
+               plotOutput("HisFig"),
+               tableOutput("SumTable"))
+             ),
     
     ##### Text search Page #####  
-      tabPanel("Text search",
-        fluidPage(
-            sidebarLayout(position = "right",
-                          sidebarPanel(
-                            textInput("word_select4", label = "word to search","Cachexia"),
-                            actionButton("SearchKW4", "Search")
-                          ),
-                          
-            mainPanel(
-              fluidRow(
-                dataTableOutput("table")
-                     ))
-                  )
-        
-               )),
+    navbarMenu("Text search",  
+                 tabPanel("Key sentence",
+                          fluidPage(fluidRow(dataTableOutput("BestSent_Table")))
+                        ),
+                 tabPanel("Key sentence ModeA",
+                          fluidPage(fluidRow(dataTableOutput("BestSent_TableA")))
+                        ),
+                 tabPanel("Key sentence ModeB",
+                          fluidPage(fluidRow(dataTableOutput("BestSent_TableB")))
+                        ),
+                 tabPanel("All Sentence",
+                          fluidPage(fluidRow(dataTableOutput("table")))
+                        )
+              ),
     
     ##### Analysis search Page #####  
-        navbarMenu("Analysis", 
-          tabPanel("Word2Vector",    
-            fluidPage(
-            sidebarLayout(position = "right",
-                          sidebarPanel(
-                            
-                            textInput("word_select2", label = "word to search","Cachexia"),
-                            actionButton("SearchKW2", "Search")
-                          ),
-                          
-                          mainPanel(tableOutput("W2VTable_SRP"))      
-            ))
-            ),
-          tabPanel("W2V Dimension Reduction",
-             fluidPage(
-              sidebarLayout(position = "right",
-                sidebarPanel(
-                               textInput("word_select3", label = "word to search","Cachexia"),
-                               actionButton("SearchKW3", "Search")
-                             ),
-                           mainPanel(plotOutput("W2V_DR"))
-            )))
-        )
-      )
-      )
-
-# ##### UI ########
-# ui = tagList(
-#   # https://stackoverflow.com/questions/57037758/r-shiny-how-to-color-margin-of-title-panel
-#   titlePanel(h1("IR Project 3",
-#                 style='background-color:#ece4db;  
-#                      color:#474973;
-#                      font-weight: 500;
-#                      font-family: Arial Black;
-#                      line-height: 1.2;
-#                      padding-left: 15px')), 
-#   fluidPage(
-#   sidebarLayout(
-#     position = "right",
-#     sidebarPanel(
-#       fileInput("file1", "Choose XML Files", accept = ".xml", multiple = T),
-#       fileInput("file2", "Choose JSON File", accept = ".json", multiple = T),
-#       actionButton("SearchKW", "Go"),
-#       textInput("word_select", label = "Word to search")
-#       
-#     ),
-#     
-#     mainPanel(
-#       tableOutput("SumTable"),
-#       plotOutput("HisFig"))
-#   ),
-#   fluidRow(
-#     dataTableOutput("table")
-#   )
-# )
-# )
+    navbarMenu("Analysis", 
+               tabPanel("Word2Vector",    
+                        fluidPage(tableOutput("W2VTable_SRP"))      
+                  
+               ),
+               tabPanel("W2V Dimension Reduction",
+                        fluidPage(plotOutput("W2V_DR"))
+                       ),
+               tabPanel("SentFreq Dimension Reduction",
+                        fluidPage(plotOutput("SentFreq"))
+               )
+            )
+  )
+)
