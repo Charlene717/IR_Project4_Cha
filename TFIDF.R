@@ -1,8 +1,17 @@
+# Analyzing word and document frequency: tf-idf
+# https://www.tidytextmining.com/tfidf.html
+
+
 ## For Test
 ##### Paragraph to Sentence #####
-xmlTestPath = "D:/Dropbox/##_GitHub/0-R/IR_Project4_Cha/Database_TestXML/test1.xml"
+# xmlTestPath = "D:/Dropbox/##_GitHub/0-R/IR_Project4_Cha/Database_TestXML/test1.xml"
+xmlTestPath = "D:/Dropbox/##_GitHub/0-R/IR_Project4_Cha/Database_Cachexia/pmid-cancercach-set_1year100.xml"
+
 Output_Sum <- XML_to_df(xmlTestPath)
 XML.df <- Output_Sum[["XML.df"]]
+XML.df <- XML.df[!is.na(XML.df$CHAR),]
+XML.df <- XML.df[!XML.df$CHAR == 0,]
+
 
 XML.df.Abs <- data.frame(PMID = XML.df$PMID ,Abstract = XML.df$Abstract)
 XML.df.Abs1 <- XML.df.Abs[1,]
@@ -58,6 +67,8 @@ total_words <- SumTest2_4 %>%
   summarise(total = sum(freq))  # https://github.com/tidyverse/dplyr/issues/505
 
 SumTest2_4 <- left_join(SumTest2_4, total_words)
+SumTest2_4 <- SumTest2_4[!is.na(SumTest2_4$word),]
+SumTest2_4 <- SumTest2_4[!SumTest2_4$word=="",]
 
 # library(ggplot2)
 # ggplot(SumTest2_4, aes(freq/total, fill = PMID)) +
@@ -67,6 +78,19 @@ SumTest2_4 <- left_join(SumTest2_4, total_words)
 
 PMID_tf_idf <- SumTest2_4 %>%
   bind_tf_idf(word, PMIDLine, freq)
+
+PMID_tf_idfTest1 <- SumTest2_4 %>%
+  TF_IDF(word, PMIDLine, freq)
+
+PMID_tf_idfTest2 <- SumTest2_4 %>%
+  TF_IDF(word, PMIDLine, freq, mode ="A")
+PMID_tf_idfTest3 <- SumTest2_4 %>%
+  TF_IDF(word, PMIDLine, freq, mode ="B")
+PMID_tf_idfTest4 <- SumTest2_4 %>%
+  TF_IDF(word, PMIDLine, freq, mode ="C")
+PMID_tf_idfTest5 <- SumTest2_4 %>%
+  TF_IDF(word, PMIDLine, freq, mode ="D")
+
 
 PMID_tf_idf
 
@@ -116,3 +140,26 @@ BestTextinPMID2 <- PMID_tf_idf_Sum2[PMID_tf_idf_Sum2$avgscore %in% BestTextinPMI
 
 
 # PMID_tf_idf_Sum2Max <- PMID_tf_idf2 %>% group_by(PMIDLine) %>% summarise(., maxscore=max(score))
+
+## Try3 Word2Vector
+Keyword.df <- data.frame(word=c("Cachexia"),dist = c(100))
+KeyWordW2v.df <- rbind(Keyword.df, dist_cachexia_5year_SRP)
+KeyWordW2v.df$dist %>% as.numeric() -> KeyWordW2v.df$dist
+PMID_tf_idf3 <- left_join(PMID_tf_idf,KeyWordW2v.df)
+PMID_tf_idf3[is.na(PMID_tf_idf3$dist),]$dist <- 0 
+PMID_tf_idf3 <- mutate(PMID_tf_idf3,score=tf_idf*(1+dist))
+# PMID_tf_idf3[is.na(PMID_tf_idf3$score),]$score <- 0 
+PMID_tf_idf_Sum3 <- PMID_tf_idf3 %>% group_by(PMIDLine) %>% summarise(., avgscore=mean(score))
+PMID_tf_idf_Sum3 <- full_join(PMID_tf_idf_Sum3, SumTest1_1)
+
+BestText.df3 <- PMID_tf_idf_Sum3[PMID_tf_idf_Sum3$avgscore == max(PMID_tf_idf_Sum3$avgscore),]
+BestText3 <- as.character(BestText.df3$Text)
+
+BestTextinPMID.df3 <- PMID_tf_idf_Sum3 %>% group_by(PMID) %>% summarise(., maxscore=max(avgscore))
+BestTextinPMID3 <- PMID_tf_idf_Sum3[PMID_tf_idf_Sum3$avgscore %in% BestTextinPMID.df3$maxscore,]
+
+
+
+
+
+
