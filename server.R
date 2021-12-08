@@ -2,7 +2,7 @@ options(shiny.maxRequestSize=30*1024^2)
 ##### Preload data
 #load("D:/Ch_Bioinformatics Dropbox/Chang Charlene/##_GitHub/0-R/IR_Project3_Cha/word2vec_5year.Rdata")
 
-load("word2vec_5year2_TFIDF_Monocle.RData")
+load("word2vec_5year2_TFIDF.RData")
 
 ##### Server #####
 server = function(input, output, session){
@@ -275,7 +275,7 @@ server = function(input, output, session){
       colnames(dist_Gene_5year_SRP_CBOW) <- c("Word","CBOW.CosDist")
       
       df_W2V_SRP <- full_join(dist_Gene_5year_SRP, dist_Gene_5year_SRP_W2P,by="Word")
-      df_W2V_SRP <- full_join(df_W2V_SRP, dist_Gene_5year_SRP_CBOW,by="Word")
+      #df_W2V_SRP <- full_join(df_W2V_SRP, dist_Gene_5year_SRP_CBOW,by="Word")
       
     }else{
       ana_cachexia_5year_SRP = word_analogy(file_name = "vec_5year_SRP.bin",search_words = Keyword_reactive_Ori_XML() ,num = 1000)
