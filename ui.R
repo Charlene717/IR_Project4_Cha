@@ -36,7 +36,7 @@ library(Rtsne)
 
 library(enc)
 library(ggplot2)
-library(monocle3)
+
 
 
 #####  Function setting ##### 
@@ -100,7 +100,8 @@ ui =   fluidPage(
                         fluidPage(plotOutput("W2V_DR"))
                        ),
                tabPanel("SentFreq Dimension Reduction",
-                        fluidPage(plotOutput("SentFreq"))
+                        fluidPage(img(src = "Monocle3_UMAP.PNG",
+                                      height = "450px", width = "1700px", align = "center"), br())
                )
             )
   )
